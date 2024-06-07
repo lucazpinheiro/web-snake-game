@@ -1,7 +1,49 @@
-
-const RANDOM_CELLS_COUNT = 400;
+48
 const GRID_SIZE = 48;
 const CELLS = []
+
+class Player {
+  constructor() {
+    this.points = 0
+    this.direction = 'right',
+    this.x = 23,
+    this.y = 23
+  }
+
+  getPosition() {
+    switch (this.direction) {
+      case "left":
+          if ((this.y - 1) === -1) {
+            this.y = 47
+          }
+          this.y-- 
+          break;
+      case "right":
+        if ((this.y + 1) === 48) {
+          this.y = 0
+        }
+          this.y++
+          break;
+      case "up":
+        if ((this.x - 1) === -1) {
+          this.x = 47
+        }
+          this.x--
+          break;
+      case "down":
+        if ((this.x + 1) === 48) {
+          this.x = 0
+        }
+          this.x++
+    }
+
+    return `${this.x}:${this.y}`
+  }
+
+  score() {
+    this.points++
+  }
+}
 
 function mountGrid() {
   const grid = document.getElementById("grid")
@@ -9,7 +51,7 @@ function mountGrid() {
     for (let j = 0; j < GRID_SIZE; j++) {
       const div = document.createElement("div");
       div.className = "dead-cell"
-      const id = `cell:${i}:${j}`
+      const id = `${i}:${j}`
       div.id = id
       CELLS.push(id)
       grid.appendChild(div)
@@ -25,7 +67,6 @@ function selectRandomCell(playerCell) {
     return shuffled[1]
   }
 }
-
 
 function setInputListener(player) {
   document.body.addEventListener('keydown', (e) => {
@@ -47,45 +88,14 @@ function setInputListener(player) {
   });
 }
 
-function updatePosition(player) {
-  switch (player.direction) {
-    case "left":
-        if ((player.y - 1) === -1) {
-          player.y = 47
-        }
-        player.y-- 
-        break;
-    case "right":
-      if ((player.y + 1) === 48) {
-        player.y = 0
-      }
-        player.y++
-        break;
-    case "up":
-      if ((player.x - 1) === -1) {
-        player.x = 47
-      }
-        player.x--
-        break;
-    case "down":
-      if ((player.x + 1) === 48) {
-        player.x = 0
-      }
-        player.x++
-  }
-}
-
 function main() {
   let stopLoop = false
-  const player = {
-    direction: 'right',
-    x: 23,
-    y: 23,
-  }
+
+  const player = new Player()
 
   
   mountGrid()
-  let food = selectRandomCell(`cell:${player.x}:${player.y}`)
+  let foodPosition = selectRandomCell(player.getPosition())
   setInputListener(player)
 
   const updateGrid = (newState) => {
@@ -105,9 +115,19 @@ function main() {
       if (stopLoop) {
         return
       }
+      
+      const liveCells = []
 
-      updatePosition(player, food)
-      updateGrid([`cell:${player.x}:${player.y}`, food])
+      const playerPosition = player.getPosition()
+
+      if (playerPosition === foodPosition) {
+        foodPosition = selectRandomCell(player.getPosition())
+        player.score()
+      }
+          
+      liveCells.push(playerPosition, foodPosition)
+      updateGrid(liveCells)
+      console.log(player)
   }
   
   setInterval(gameLoop, 80)
